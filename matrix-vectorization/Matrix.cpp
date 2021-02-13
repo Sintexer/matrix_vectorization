@@ -5,16 +5,16 @@
 #include <iomanip>
 #include "Matrix.h"
 
-Matrix::Matrix(const Matrix& matrix) {
-    data = new float* [matrix.rows];
-    cols = matrix.cols;
-    rows = matrix.rows;
-    for (int i = 0; i < MT_ROWS; ++i) {
-        data[i] = new float[matrix.cols];
-        for (int j = 0; j < MT_COLS; ++j) {
+Matrix::Matrix(const Matrix& matrix) : rows(matrix.rows), cols(matrix.cols) {
+    data = new float* [rows];
+    
+    for (int i = 0; i < rows; ++i) {
+        data[i] = new float[cols];
+        for (int j = 0; j < cols; ++j) {
             data[i][j] = matrix.getData()[i][j];
         }
     }
+
 }
 
 Matrix::~Matrix() {
@@ -30,10 +30,10 @@ Matrix Matrix::multiply(Matrix& m1, Matrix& m2)
     auto rows = m1.rows;
     auto resultData = allocate(rows, cols_);
 
-    for (int i = 0; i < MT_ROWS; ++i) {
+    for (int i = 0; i < MT_M; ++i) {
         auto resultRow = resultData[i];
         auto row = data[i];
-        for (int j = 0; j < MT_COLS; ++j) {
+        for (int j = 0; j < MT_N; ++j) {
             auto val = row[j];
             auto col = data_[j];
             for (int k = 0; k < cols_; ++k) {
@@ -59,8 +59,8 @@ float **Matrix::allocate(int rows, int cols) {
 }
 
 void Matrix::fill() {
-    for (int i = 0; i < MT_ROWS; ++i) {
-        for (int j = 0; j < MT_COLS; ++j) {
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
             data[i][j] = getRandomFloat(MIN_VALUE, MAX_VALUE);
         }
     }
@@ -72,23 +72,23 @@ float Matrix::getRandomFloat(float min, float max) {
 }
 
 void Matrix::fill(float value) {
-    for (int i = 0; i < MT_ROWS ; ++i) {
-        for (int j = 0; j < MT_COLS; ++j) {
+    for (int i = 0; i < rows ; ++i) {
+        for (int j = 0; j < cols; ++j) {
             data[i][j] = value;
         }
     }
 }
 
 void Matrix::clear() {
-    for (int i = 0; i < MT_ROWS; ++i) {
+    for (int i = 0; i < rows; ++i) {
         delete[] data[i];
     }
     delete data;
 }
 
-void Matrix::print() {
-    for (int i = 0; i < MT_ROWS; i++) {
-        for (int j = 0; j < MT_COLS; j++) {
+const void Matrix::print() {
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
             std::cout << std::setprecision(8) << std::setw(7) <<data[i][j] << ' ';
         }
         std::cout << std::endl;
@@ -98,37 +98,36 @@ void Matrix::print() {
 }
 
 void Matrix::fill(float **matrix) {
-    for (int i = 0; i < MT_ROWS; i++) {
-        for (int j = 0; j < MT_COLS; j++) {
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
             data[i][j] = matrix[i][j];
         }
     }
 }
 
 Matrix Matrix::operator*(Matrix &matrix) {
-    //if (cols != matrix.getRows())
-    //    throw std::runtime_error("Can't multiply matrix");
+    if (cols != matrix.getRows())
+        throw std::runtime_error("Can't multiply matrix");
 
     auto data_ = matrix.getData();
 
-    auto cols_ = matrix.getCols();
-    auto resultData = allocate(rows, cols_);
+    auto resultData = allocate(MT_M, MT_K);
 
-    for (int i = 0; i < MT_ROWS; ++i) {
+    for (int i = 0; i < MT_M; ++i) {
         auto resultRow = resultData[i];
         auto row = data[i];
-        for(int j = 0; j < MT_COLS; ++j){
+        for(int j = 0; j < MT_N; ++j){
             auto val = row[j];
             auto col = data_[j];
-            for(int k = 0; k < cols_; ++k){
+            for(int k = 0; k < MT_K; ++k){
                 resultRow[k] += val * col[k];
             }
         }
     }
 
-    Matrix result(rows, cols_);
+    Matrix result(MT_M, MT_K);
+    
     result.fill(resultData);
-
     return result;
 
 }
@@ -137,10 +136,10 @@ Matrix Matrix::operator+(Matrix &matrix1) {
     auto resultData = allocate(this->rows, this->cols);
     auto data1 = matrix1.getData();
     auto data2=data;
-    for (int i=0; i<MT_ROWS; ++i) {
+    for (int i=0; i<cols; ++i) {
         auto row1=data1[i];
         auto row2=data2[i];
-        for (int j=0; j< MT_COLS; ++j) {
+        for (int j=0; j< rows; ++j) {
             resultData[i][j]=row1[j]+row2[j];
         }
     }
@@ -155,8 +154,8 @@ Matrix& Matrix::operator=(const Matrix &matrix) {
     this->cols=matrix.cols;
     this->rows=matrix.rows;
     this->data=allocate(matrix.rows, matrix.cols);
-    for (int i = 0; i < MT_ROWS; ++i) {
-        for (int j = 0; j < MT_COLS; ++j) {
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
             this->data[i][j] = matrix.getData()[i][j];
         }
     }
@@ -166,38 +165,11 @@ Matrix& Matrix::operator=(const Matrix &matrix) {
 void Matrix::add(Matrix& m)
 {
     auto data1 = m.getData();
-    for (int i = 0; i < MT_ROWS; ++i) {
+    for (int i = 0; i < rows; ++i) {
         auto row1 = data1[i];
-        for (int j = 0; j < MT_COLS; ++j) {
+        for (int j = 0; j < cols; ++j) {
             data[i][j] += row1[j];
         }
     }
 }
-
-void Matrix::mult(Matrix& m)
-{
-    if (cols != m.getRows())
-        throw std::runtime_error("Can't multiply matrix");
-
-    auto data_ = m.getData();
-
-    auto cols_ = m.getCols();
-
-    for (int i = 0; i < MT_ROWS; ++i) {
-        auto resultRow = data[i];
-        auto row = data[i];
-        for (int j = 0; j < MT_COLS; ++j) {
-            auto val = row[j];
-            auto col = data_[j];
-            for (int k = 0; k < cols_; ++k) {
-                resultRow[k] += val * col[k];
-            }
-        }
-    }
-
-}
-
-
-
-
 

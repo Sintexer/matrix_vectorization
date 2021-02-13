@@ -1,9 +1,8 @@
 #pragma once
 
-#include <vector>
-
-#define MT_ROWS 4
-#define MT_COLS 4
+#define MT_M 8
+#define MT_N 4
+#define MT_K 5
 #define CELL_ROWS 4
 #define CELL_COLS 4
 
@@ -22,15 +21,20 @@ public:
         fill();
     }
 
+    Matrix() : rows(MT_M), cols(MT_N) {
+        data = allocate(MT_M, MT_N);
+        fill();
+    }
 
-    Matrix(const Matrix &);
-
-    Matrix() = default;
+    Matrix(const Matrix &m);
 
     ~Matrix();
 
-    static Matrix multiply(Matrix& m1, Matrix& m2);
+    static Matrix createInnerResultMatrix() {
+        return Matrix(MT_N, MT_K);
+    }
 
+    static Matrix multiply(Matrix& m1, Matrix& m2);
 
     Matrix operator+(Matrix &matrix1);
 
@@ -39,9 +43,8 @@ public:
     Matrix& operator=(const Matrix &matrix);
 
     void add(Matrix& m);
-    void mult(Matrix& m);
 
-    void print();
+    const void print();
 
     bool operator==(const Matrix &rhs) const {
         return data == rhs.data &&
@@ -61,16 +64,8 @@ public:
         return rows;
     }
 
-    void setRows(int rows_) {
-        Matrix::rows = rows_;
-    }
-
     int getCols() const {
         return cols;
-    }
-
-    void setCols(int cols_) {
-        Matrix::cols = cols_;
     }
 
     void fill();
