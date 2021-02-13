@@ -1,10 +1,8 @@
 #pragma once
 
-#define MT_M 8
-#define MT_N 4
-#define MT_K 5
-#define CELL_ROWS 4
-#define CELL_COLS 4
+#define MT_M 16
+#define MT_N 32
+#define MT_K 32
 
 class Matrix {
 protected:
@@ -13,7 +11,7 @@ protected:
     int cols{};
 
     const float MIN_VALUE = 0.;
-    const float MAX_VALUE = 100.;
+    const float MAX_VALUE = 4.;
 
 public:
     Matrix(int rows_, int cols_) : rows(rows_), cols(cols_) {
@@ -35,6 +33,7 @@ public:
     }
 
     static Matrix multiply(Matrix& m1, Matrix& m2);
+    static Matrix multiplyOptimized(Matrix& m1, Matrix& m2);
 
     Matrix operator+(Matrix &matrix1);
 
